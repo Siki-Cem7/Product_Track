@@ -6,7 +6,11 @@ import time
 import multiprocessing
 
 
+
+
 class Product_Tracker():
+
+
 
     def __init__(self):
 
@@ -16,6 +20,8 @@ class Product_Tracker():
         """
 
 
+
+        self.product_name = ""
         self.product_nummber = ""
 
         self.url_interdiscount = f"https://www.interdiscount.ch/de/search?search={self.product_nummber}"
@@ -42,6 +48,7 @@ class Product_Tracker():
 
 
 
+
     def get_act_price(self):
 
         self.data = requests.get(self.url_interdiscount)
@@ -49,8 +56,12 @@ class Product_Tracker():
 
         try:
             self.price = self.html_code.find(class_="_3H04_H").get_text()
+
+            self.html_product = BeautifulSoup(self.data.text, "html5lib")
+            self.product_name = self.html_product.find(class_="uIyEJC _2sh9pz _2mLeUk _9YoDdk")["title"]
+
         except:
-            print("Error")
+                print("Error")
 
 
 
@@ -71,16 +82,17 @@ class Product_Tracker():
             if(i == 0):
                 with open(f"log_file_{self.thread_number}.txt", "a") as file:
                     file.write(
-                        "Actual price from article: " + str(self.thread_number) + " is: " + str(self.price) + "\n")
+                        "Actual price from article: " + str(self.product_name) + " is: " + str(self.price) + "\n")
             else:
                 None
 
             i = i + 1
-            time.sleep(10)
+
+            time.sleep(3600)
 
             self.get_act_price()
             with open(f"log_file_{self.thread_number}.txt", "a") as file:
-                file.write(f"Price after {i}h from article: " + str(self.thread_number) + " is: " + str(self.price) + "\n")
+                file.write(f"Price after {i}h from article: " + str(self.product_name) + " is: " + str(self.price) + "\n")
 
 
 
@@ -90,7 +102,7 @@ class Product_Tracker():
                 self.Mail = Mail()
 
                 self.Mail.mail["body"] = f"""
-The product: {self.thread_number} has changed his Price.
+The product: {self.product_name} has changed his Price.
 -----------------------------------------------------------
 The new Price is: {self.price}
 """
